@@ -2,14 +2,20 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import pandas as pd
 import seaborn as sns
+from gurobipy import *
 
 class WarehouseSpanningTree:
-    def __init__(self, warehouse_layout):
+    def __init__(self,warehouse_layout,orders):
         self.warehouse_layout = warehouse_layout
         self.graph = self._create_graph_with_dummy_nodes()
+        # self.plot_distance_matrix(orders)
+        pass
 
     def _create_graph_with_dummy_nodes(self):
         G = nx.Graph()
+
+
+        # Add nodes to the graphG.add_edge((5,14),(5,15),weight=1)
 
         # Define actual and dummy nodes based on the layout provided
         dummy_nodes = [(x, 0) for x in range(19)] + [(x, 16) for x in range(19)]
@@ -21,7 +27,10 @@ class WarehouseSpanningTree:
             for y in range(1, 15):
                 if (x, y) not in dummy_nodes:
                     actual_nodes.append((x, y))
-
+        G.add_edge((8, 14), (8, 15), weight=1)
+        G.add_edge((11, 14), (11, 15), weight=1)
+        G.add_edge((14, 14), (14, 15), weight=1)
+        G.add_edge((17, 14), (17, 15), weight=1)
         # Add nodes to the graph
         for node in dummy_nodes:
             G.add_node(node, is_dummy=True)
@@ -52,25 +61,39 @@ class WarehouseSpanningTree:
         # Adding specific edges with different weights
         for i in range(0, 18):
             if (i, 0) in dummy_nodes:  # Check if the edge endpoint is in dummy_nodes
-                G.add_edge((i, 0), (i+1, 0), weight=2 / 5)
+                G.add_edge((i, 0), (i+1, 0), weight=2 / 3)
             if (i, 16) in dummy_nodes:  # Check if the edge endpoint is in dummy_nodes
-                G.add_edge((i, 16), (i+1, 16), weight=2 / 5)
+                G.add_edge((i, 16), (i+1, 16), weight=2 / 3)
 
 
 
-        G.add_edge((2,0),(2,1),weight=2 / 5)
-        G.add_edge((5,0),(5,1),weight=2 / 5)
-        G.add_edge((8,0),(8,1),weight=2 / 5)
-        G.add_edge((11,0),(11,1),weight=2 / 5)
-        G.add_edge((14,0),(14,1),weight=2 / 5)
-        G.add_edge((17,0),(17,1),weight=2 / 5)
+        G.add_edge((2,0),(2,1),weight=0)
+        G.add_edge((5,0),(5,1),weight=0)
+        G.add_edge((8,0),(8,1),weight=0)
+        G.add_edge((11,0),(11,1),weight=0)
+        G.add_edge((14,0),(14,1),weight=0)
+        G.add_edge((17,0),(17,1),weight=0)
 
-        G.add_edge((2,15),(2,16),weight=2 / 5)
-        G.add_edge((5,15),(5,16),weight=2 / 5)
-        G.add_edge((8,15),(8,16),weight=2 / 5)
-        G.add_edge((11,15),(11,16),weight=2 / 5)
-        G.add_edge((14,15),(14,16),weight=2 / 5)
-        G.add_edge((17,15),(17,16),weight=2 / 5)
+        G.add_edge((2,15),(2,16),weight=0)
+        G.add_edge((5,15),(5,16),weight=0)
+        G.add_edge((8,15),(8,16),weight=0)
+        G.add_edge((11,15),(11,16),weight=0)
+        G.add_edge((14,15),(14,16),weight=0)
+        G.add_edge((17,15),(17,16),weight=0)
+
+
+        G.add_edge((1, 15), (2, 15), weight=0)
+        G.add_edge((2, 15), (3, 15), weight=0)
+        G.add_edge((4, 15), (5, 15), weight=0)
+        G.add_edge((5, 15), (6, 15), weight=0)
+        G.add_edge((7, 15), (8, 15), weight=0)
+        G.add_edge((8, 15), (9, 15), weight=0)
+        G.add_edge((10, 15), (11, 15), weight=0)
+        G.add_edge((11, 15), (12, 15), weight=0)
+        G.add_edge((13, 15), (14, 15), weight=0)
+        G.add_edge((14, 15), (15, 15), weight=0)
+        G.add_edge((16, 15), (17, 15), weight=0)
+        G.add_edge((17, 15), (18, 15), weight=0)
 
 
         G.add_edge((0, 15), (0, 16), weight=float('inf'))
@@ -99,8 +122,9 @@ class WarehouseSpanningTree:
         G.add_edge((15, 0), (15, 1), weight=float('inf'))
         G.add_edge((16, 0), (16, 1), weight=float('inf'))
         G.add_edge((18, 0), (18, 1), weight=float('inf'))
-        return G
 
+
+        return G
 
     # def plot_spanning_tree(self):
     #     mst = nx.minimum_spanning_tree(self.graph)
@@ -168,6 +192,96 @@ class WarehouseSpanningTree:
         return best_path
 
 
+
+    # def find_shortest_path_sina(self, orders):
+    #
+    #     df = self.generate_distance_matrix(orders)
+    #     nodes = range(df.shape[0])
+    #     tsp = Model("tsp_model")
+    #     d2 = df.values.tolist()
+    #     print("d2: ",d2)
+    #
+    #     x = tsp.addVars(nodes, nodes, lb=0, vtype=GRB.BINARY, name='x')
+    #     u = tsp.addVars(nodes, lb=0, vtype=GRB.INTEGER, name='u')
+    #
+    #     tsp.addConstrs(((quicksum(x[i, j] for j in nodes if j != i) == 1) for i in nodes), name='degree_const_1');
+    #     tsp.addConstrs(((quicksum(x[i, j] for i in nodes if i != j) == 1) for j in nodes), name='degree_const_2');
+    #
+    #     tsp.addConstrs(
+    #         ((u[i] - u[j] + len(nodes) * x[i, j] <= len(nodes) - 1) for i in nodes for j in nodes if i != 0 and j != 0),
+    #         name='Subtour_elimination');
+    #     tsp.setObjective((quicksum(d2[i][j] * x[i, j] for i in nodes for j in nodes if i != j)), GRB.MINIMIZE)
+    #
+    #     tsp.setParam("TimeLimit", 7200)  # time limit
+    #
+    #     tsp.update()
+    #     tsp.optimize()
+    #
+    #     status = tsp.status
+    #
+    #     object_Value = tsp.objVal
+    #
+    #     print("model status is: ", status)
+    #
+    #     print("Objective value is: ", object_Value)
+    #
+    #     if status != 3 and status != 4:
+    #         for v in tsp.getVars():
+    #             if tsp.objVal < 1e+99 and v.x != 0:
+    #                 print('%s %f' % (v.Varname, v.x))
+    #
+    #     if status != 3 and status != 4:
+    #         vis = []
+    #         Sol_x = np.zeros([len(nodes), len(nodes)])
+    #         for i in nodes:
+    #             for j in nodes:
+    #                 if tsp.objVal < 1e+99:
+    #                     Sol_x[i, j] = x[i, j].getAttr("X")
+    #                 else:
+    #                     error_status = True
+    #                     ofvv = 1e+99
+    #                 if 1 - 0.00001 <= Sol_x[i, j] <= 1 + 0.00001:
+    #                     vis.append((i, j))
+    #
+    #     print(Sol_x)
+    #     print()
+    #     print(vis)
+    #
+    #     visited = np.array(vis)
+    #     prt_solution = []
+    #     if visited[0][0] == 0:
+    #         sol = [visited[0][0], visited[0][1]]
+    #     elif visited[0][0] != 0 and visited[0][1] == 0:
+    #         sol = [visited[0][1], visited[0][0]]
+    #     else:
+    #         print('First tuple should include depot 0')
+    #     visited = np.delete(visited, 0, axis=0)
+    #
+    #     for i in visited:
+    #         try:
+    #             next_ind = int(np.where(visited[:, 0] == sol[-1])[0])
+    #             sol.append(visited[next_ind][1])
+    #             visited = np.delete(visited, next_ind, axis=0)
+    #         except:
+    #             next_ind = int(np.where(visited[:, 1] == sol[-1])[0])
+    #             sol.append(visited[next_ind][0])
+    #             visited = np.delete(visited, next_ind, axis=0)
+    #
+    #         if sol[0] == sol[-1]:
+    #             sol = np.asarray(sol)
+    #             prt_solution.append(sol)
+    #             used = []
+    #             for j in prt_solution:
+    #                 for k in j:
+    #                     used.append(k)
+    #             remain = list(set(nodes) - set(used))
+    #             if remain == []:
+    #                 break
+    #             sol = [visited[0][0], visited[0][1]]
+    #             visited = np.delete(visited, 0, axis=0)
+    #
+    #     print('optimal tour is:', sol)
+    #     return  'optimal tour is: ' + sol
     def plot_spanning_tree(self):
         mst = nx.minimum_spanning_tree(self.graph)
         pos = {node: (node[0], -node[1]) for node in
@@ -201,26 +315,14 @@ class WarehouseSpanningTree:
         plt.axis('off')
         plt.show()
 
-
     def plot_path_and_tree(self, orders):
-        """Plot the spanning tree and the shortest path for given orders."""
-        mst = nx.minimum_spanning_tree(self.graph)
+        """Plot the complete graph and the shortest path for given orders."""
         pos = {node: (node[0], -node[1]) for node in self.graph.nodes()}  # Positions based on grid coordinates
 
         plt.figure(figsize=(13, 13))
-        nx.draw_networkx_edges(mst, pos, alpha=0.5, width=1)
+        nx.draw_networkx_edges(self.graph, pos, alpha=0.5, width=1)
 
         # Define actual and dummy nodes based on the layout provided
-        # dummy_nodes = [(x, 0) for x in range(13)] + [(x, 16) for x in range(13)]
-        # for y in range(1, 16):
-        #     dummy_nodes.extend([(2, y), (5, y), (8, y), (11, y)])
-        #
-        # actual_nodes = []
-        # for x in range(13):
-        #     for y in range(1, 16):
-        #         if (x, y) not in dummy_nodes:
-        #             actual_nodes.append((x, y))
-
         dummy_nodes = [(x, 0) for x in range(19)] + [(x, 16) for x in range(19)]
         for y in range(1, 16):
             dummy_nodes.extend([(2, y), (5, y), (8, y), (11, y), (14, y), (17, y)])
@@ -232,9 +334,9 @@ class WarehouseSpanningTree:
                     actual_nodes.append((x, y))
 
         # Draw nodes
-        nx.draw_networkx_nodes(mst, pos, nodelist=actual_nodes, node_color='green', node_size=100)
-        nx.draw_networkx_nodes(mst, pos, nodelist=dummy_nodes, node_color='lightblue', node_size=50)
-        nx.draw_networkx_labels(mst, pos, {node: node for node in actual_nodes}, font_size=8)
+        nx.draw_networkx_nodes(self.graph, pos, nodelist=actual_nodes, node_color='green', node_size=100)
+        nx.draw_networkx_nodes(self.graph, pos, nodelist=dummy_nodes, node_color='lightblue', node_size=50)
+        nx.draw_networkx_labels(self.graph, pos, {node: node for node in actual_nodes}, font_size=8)
 
         # Find and draw the shortest path
         shortest_path = self.find_shortest_path(orders)
@@ -247,7 +349,39 @@ class WarehouseSpanningTree:
             print("No shortest path found or path is empty.")
 
         plt.legend(['Actual Nodes', 'Dummy Nodes', 'Shortest Path'])
-        plt.title("Warehouse Path and Spanning Tree")
+        plt.title("Warehouse Complete Graph and Shortest Path")
+        plt.axis('off')
+        plt.show()
+
+    def plot_spanning_tree(self):
+        pos = {node: (node[0], -node[1]) for node in
+               self.graph.nodes()}  # Position nodes based on their grid coordinates
+
+        plt.figure(figsize=(13, 13))
+        nx.draw_networkx_edges(self.graph, pos, alpha=0.5, width=1)
+
+        # Define actual and dummy nodes based on the layout provided
+        dummy_nodes = [(x, 0) for x in range(19)] + [(x, 16) for x in range(19)]
+        for y in range(1, 16):
+            dummy_nodes.extend([(2, y), (5, y), (8, y), (11, y), (14, y), (17, y)])
+
+        actual_nodes = []
+        for x in range(19):
+            for y in range(1, 16):
+                if (x, y) not in dummy_nodes:
+                    actual_nodes.append((x, y))
+
+        # Draw nodes
+        nx.draw_networkx_nodes(self.graph, pos, nodelist=actual_nodes, node_color='green', node_size=100)
+        nx.draw_networkx_nodes(self.graph, pos, nodelist=dummy_nodes, node_color='lightblue', node_size=50)
+        nx.draw_networkx_labels(self.graph, pos, {node: node for node in actual_nodes}, font_size=8)
+
+        # Draw edge labels
+        edge_labels = nx.get_edge_attributes(self.graph, 'weight')
+        nx.draw_networkx_edge_labels(self.graph, pos, edge_labels=edge_labels)
+
+        plt.legend(['Actual Nodes', 'Dummy Nodes', 'Edge Weights'])
+        plt.title("Warehouse Complete Graph with Edge Weights")
         plt.axis('off')
         plt.show()
 
@@ -278,6 +412,7 @@ class WarehouseSpanningTree:
                 if from_node == to_node:
                     distance = 0
                 else:
+                    # distance = gurobi.(self.graph, from_node, to_node, weight='weight')
                     distance = nx.shortest_path_length(self.graph, from_node, to_node, weight='weight')
                 distances.append(distance)
             distance_matrix[f"Order {i + 1} ({from_node})"] = distances
@@ -311,17 +446,25 @@ for i in range(1, 16):  # Adjust columns for dummy nodes
 
 # spanning_tree_solver = WarehouseSpanningTree(layout)
 orders = [(16, 14), (1, 5), (1, 8), (7, 13), (13, 9), (1, 13), (4, 11), (4, 5), (7, 4), (7, 7), (16, 4),
-          (16, 7)]  # Correct format for orders
+          (16, 7)]
+# orders = [(1,5),(7,4)]
+#
+# orders = [(16, 14), (1, 5), (1, 8), (7, 13), (13, 15), (1, 15), (4, 11), (4, 5), (7, 4), (7, 7), (16, 4),
+#           (16, 7)]
 # original -starts
 # spanning_tree_solver = WarehouseSpanningTree(layout)
 # spanning_tree_solver.plot_path_and_tree(orders)
 # original -ends
 
-spanning_tree_solver = WarehouseSpanningTree(layout)
-spanning_tree_solver.plot_spanning_tree()
-shortest_path = spanning_tree_solver.find_shortest_path(orders)
-spanning_tree_solver.plot_path_and_tree(orders)
+# spanning_tree_solver = WarehouseSpanningTree(layout)
+# spanning_tree_solver = WarehouseSpanningTree()
+# shortest_path = spanning_tree_solver.find_shortest_path(orders)
+spanning_tree_solver = WarehouseSpanningTree(layout, orders)
 distance_matrix_df = spanning_tree_solver.generate_distance_matrix(orders)
+# spanning_tree_solver.find_shortest_path_sina(orders)
+spanning_tree_solver.plot_spanning_tree()
+spanning_tree_solver.plot_path_and_tree(orders)
+
 
 # Print the DataFrame for text-based output
 print(distance_matrix_df)
