@@ -10,8 +10,6 @@ class WarehouseSpanningTree:
     def __init__(self, warehouse_layout):
         self.warehouse_layout = warehouse_layout
         self.graph = self.create_graph_with_dummy_nodes()
-        # self.validate_graph_connectivity(self.graph)
-
     def create_graph_with_dummy_nodes(self):
         G = nx.Graph()
 
@@ -197,43 +195,43 @@ class WarehouseSpanningTree:
         plt.axis('off')
         plt.show()
 
-    # def plot_path_and_tree_for_others(self, orders, best_path):
-    #     """Plot the spanning tree and the provided shortest path for given orders."""
-    #     mst = nx.minimum_spanning_tree(self.graph)
-    #     pos = {node: (node[0], -node[1]) for node in self.graph.nodes()}  # Positions based on grid coordinates
-    #
-    #     plt.figure(figsize=(13, 13))
-    #     nx.draw_networkx_edges(mst, pos, alpha=0.5, width=1)
-    #
-    #     # Define actual and dummy nodes based on the layout provided
-    #     dummy_nodes = [(x, 0) for x in range(19)] + [(x, 16) for x in range(19)]
-    #     for y in range(1, 16):
-    #         dummy_nodes.extend([(2, y), (5, y), (8, y), (11, y), (14, y), (17, y)])
-    #
-    #     actual_nodes = []
-    #     for x in range(19):
-    #         for y in range(1, 16):
-    #             if (x, y) not in dummy_nodes:
-    #                 actual_nodes.append((x, y))
-    #
-    #     # Draw nodes
-    #     nx.draw_networkx_nodes(mst, pos, nodelist=actual_nodes, node_color='green', node_size=100)
-    #     nx.draw_networkx_nodes(mst, pos, nodelist=dummy_nodes, node_color='lightblue', node_size=50)
-    #     nx.draw_networkx_labels(mst, pos, {node: node for node in actual_nodes}, font_size=8)
-    #
-    #     # Draw the provided shortest path
-    #     if best_path:
-    #         path_edges = list(zip(best_path, best_path[1:]))
-    #         print("Path Edges for Drawing:", path_edges)
-    #         nx.draw_networkx_edges(self.graph, pos, edgelist=path_edges, edge_color='red', width=2)
-    #         nx.draw_networkx_nodes(self.graph, pos, nodelist=best_path, node_color='red', node_size=50)
-    #     else:
-    #         print("No shortest path found or path is empty.")
-    #
-    #     plt.legend(['Actual Nodes', 'Dummy Nodes', 'Shortest Path'])
-    #     plt.title("Warehouse Path and Spanning Tree")
-    #     plt.axis('off')
-    #     plt.show()
+    def plot_path_and_tree_for_others(self, orders, best_path):
+        """Plot the spanning tree and the provided shortest path for given orders."""
+        mst = nx.minimum_spanning_tree(self.graph)
+        pos = {node: (node[0], -node[1]) for node in self.graph.nodes()}  # Positions based on grid coordinates
+
+        plt.figure(figsize=(13, 13))
+        nx.draw_networkx_edges(mst, pos, alpha=0.5, width=1)
+
+        # Define actual and dummy nodes based on the layout provided
+        dummy_nodes = [(x, 0) for x in range(19)] + [(x, 16) for x in range(19)]
+        for y in range(1, 16):
+            dummy_nodes.extend([(2, y), (5, y), (8, y), (11, y), (14, y), (17, y)])
+
+        actual_nodes = []
+        for x in range(19):
+            for y in range(1, 16):
+                if (x, y) not in dummy_nodes:
+                    actual_nodes.append((x, y))
+
+        # Draw nodes
+        nx.draw_networkx_nodes(mst, pos, nodelist=actual_nodes, node_color='green', node_size=100)
+        nx.draw_networkx_nodes(mst, pos, nodelist=dummy_nodes, node_color='lightblue', node_size=50)
+        nx.draw_networkx_labels(mst, pos, {node: node for node in actual_nodes}, font_size=8)
+
+        # Draw the provided shortest path
+        if best_path:
+            path_edges = list(zip(best_path, best_path[1:]))
+            print("Path Edges for Drawing:", path_edges)
+            nx.draw_networkx_edges(self.graph, pos, edgelist=path_edges, edge_color='red', width=2)
+            nx.draw_networkx_nodes(self.graph, pos, nodelist=best_path, node_color='red', node_size=50)
+        else:
+            print("No shortest path found or path is empty.")
+
+        plt.legend(['Actual Nodes', 'Dummy Nodes', 'Shortest Path'])
+        plt.title("Warehouse Path and Spanning Tree")
+        plt.axis('off')
+        plt.show()
 
     def generate_distance_matrix(self, orders):
         """Generate a distance matrix for the given orders."""
@@ -278,28 +276,6 @@ spanning_tree_solver = WarehouseSpanningTree(layout)
 print("Running TSP Algorithm...")
 spanning_tree_solver.plot_spanning_tree()
 spanning_tree_solver.plot_path_and_tree_for_tsp(orders)
-# # Call Genetic Algorithm
-# print("Running Genetic Algorithm...")
-# best_path_ga = spanning_tree_solver.genetic_algorithm(orders)
-# spanning_tree_solver.plot_path_and_tree_for_others(orders, best_path_ga)
-# print("Best path found by GA:", best_path_ga)
-# #
-# # Call Simulated Annealing
-# print("Running Simulated Annealing...")
-# initial_state_sa = random.sample(orders, len(orders))  # Random initial state
-# best_path_sa = spanning_tree_solver.simulated_annealing(initial_state_sa)
-# spanning_tree_solver.plot_path_and_tree_for_others(orders, best_path_sa)
-# print("Best path found by SA:", best_path_sa)
-#
-# # Call Ant Colony Optimization
-# print("Running Ant Colony Optimization...")
-# best_path_aco = spanning_tree_solver.ant_colony_optimization(orders)
-# spanning_tree_solver.plot_path_and_tree_for_others(orders, best_path_aco)
-# print("Best path found by ACO:", best_path_aco)
-#
-# spanning_tree_solver = WarehouseSpanningTree(layout)
-# spanning_tree_solver.plot_spanning_tree()
-# spanning_tree_solver.plot_path_and_tree(orders)
 distance_matrix_df = spanning_tree_solver.generate_distance_matrix(orders)
 print(distance_matrix_df)
 spanning_tree_solver.plot_distance_matrix(distance_matrix_df)
